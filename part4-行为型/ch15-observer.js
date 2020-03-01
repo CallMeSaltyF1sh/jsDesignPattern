@@ -1,6 +1,9 @@
 /**
  * Observer 观察者模式
  * 又称发布-订阅者模式或消息机制
+ * 注意观察者模式实际上和发布订阅模式是有一定区别的
+ * 发布者直接接触到订阅者的是观察者模式
+ * 发布者由第三方与订阅者通信而不直接接触的是发布订阅模式
  */
 
 var Observer = (function () {
@@ -79,3 +82,47 @@ var Observer = (function () {
         text.value = ''  //输入框清空
     }
 })()
+
+/**
+ * 实现Event Bus/Event Emitter
+ */
+class Emitter {
+    constructor() {
+        this.handlers = {};
+    }
+
+    on(eventName, fn) {
+        if(!this.handlers[eventName]){
+            this.handlers[eventName] = [];
+        }
+        this.handlers[eventName].push(fn);
+    }
+
+    emit(eventName, ...args) {
+        if(this.handlers[eventName]) {
+            this.handlers[eventName].forEach(fn => {
+                fn(...args);
+            });
+        }
+    }
+
+    //删除某个事件的回调队列中的某个函数
+    off(eventName, fn) {
+        if(!this.handlers[eventName]) {
+            return;
+        }
+        const callbacks = this.handlers[eventName];
+        const index = callbacks.indexOf(fn);
+        if(index !== -1) {
+            callbacks.splice(index, 1);
+        }
+    }
+
+    once(eventName, fn) {
+        const wrapper = (...args) => {
+            fn(...args);
+            this.off(eventName, fn);
+        };
+        this.on(eventName, wrapper);
+    }
+}
